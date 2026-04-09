@@ -1,23 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import { useLogin } from "@/features/login";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const { executeLogin, loading, error } = useLogin();
+    const router = useRouter();
 
-    console.log("showPassword:", showPassword);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const success = await executeLogin(username, password);
+        if (success) {
+            router.push("/inicio");
+        }
+    };
+
     return (
-        <div className="w-full">
+        <div className="w-full opacity-100">
 
             {/* Encabezado */}
-            <div className="mb-7">
-                <h1 className="text-4xl font-serif text-[#3d2a1d] mb-2 leading-tight">
-                    Bienvenido de nuevo
+            <div className="mb-8">
+                <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#004b71] to-[#4caf50] mb-2 tracking-tight">
+                    Bienvenid@
                 </h1>
-                <p className="text-gray-500 text-sm">Ingrese a su cuenta para continuar.</p>
+                <p className="text-gray-500 text-base font-medium">
+                    Ingrese a su cuenta para continuar.
+                </p>
             </div>
 
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-5" onSubmit={handleSubmit}>
 
                 {/* Campo Usuario */}
                 <div>
@@ -32,6 +47,8 @@ export default function LoginForm() {
                             </svg>
                         </span>
                         <input
+                            onChange={(e) => setUsername(e.target.value)}
+                            value={username}
                             id="login-usuario"
                             type="text"
                             placeholder="Ej. nombre.apellido@ejemplo.com"
@@ -55,6 +72,8 @@ export default function LoginForm() {
                             </svg>
                         </span>
                         <input
+                            onChange={(e) => setPassword(e.target.value)}
+                            value={password}
                             id="login-contrasena"
                             type={showPassword ? "text" : "password"}
                             placeholder="Ingrese su contraseña"
@@ -77,28 +96,18 @@ export default function LoginForm() {
                     </div>
                 </div>
 
-                {/* Olvidé mi contraseña */}
-                <div className="flex items-center justify-end">
-                    <a
-                        href="#"
-                        className="text-sm text-gray-800 font-medium underline underline-offset-4
-                                   hover:text-gray-600 transition-colors"
-                    >
-                        Olvidé mi contraseña
-                    </a>
-                </div>
 
-                {/* Botón Iniciar Sesión */}
+                {/* Mostramos el error si el hook nos dice que hubo uno */}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+
+                {/* Deshabilitamos el botón mientras el hook dice que está cargando */}
                 <button
-                    id="login-submit"
                     type="submit"
-                    className="w-full py-2.5 px-4 bg-gradient-to-r from-[#004b71] to-[#4caf50]
-                               text-white font-semibold rounded-lg shadow-sm
-                               hover:opacity-90 active:opacity-95 transition-opacity text-sm"
+                    disabled={loading}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-[#004b71] to-[#4caf50] text-white font-semibold rounded-lg shadow-md hover:opacity-90 transition-opacity"
                 >
-                    Iniciar Sesión
+                    {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
                 </button>
-
             </form>
         </div>
     );

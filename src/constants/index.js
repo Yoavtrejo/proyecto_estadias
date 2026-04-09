@@ -1,6 +1,6 @@
 //API constants
 export const BASE_URL = 'http://100.98.231.47:8001/';
-export const API_URL = '${BASE_URL}api/';
+export const API_URL = `${BASE_URL}api/`;
 
 
 //Map locations
