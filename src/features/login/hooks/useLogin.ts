@@ -11,6 +11,8 @@ export const useLogin = () => {
 
         try {
             const data = await loginService(username, password);
+            console.log("RESPUESTA CRUDA DEL LOGIN:", data);
+            console.log("INTENTANDO EXTRAER EL TOKEN:", data.access);
             localStorage.setItem('token', data.access);
             return true;
         }catch (err: unknown) {

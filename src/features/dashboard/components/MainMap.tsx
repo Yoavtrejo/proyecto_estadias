@@ -1,26 +1,27 @@
 import React, { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import  bbox from '@turf/bbox';
+import bbox from '@turf/bbox'; 
+import { get3DExtrusionPaintStyle } from '../utils/mapStyles';
 import { CENTROIDES_MUNICIPIOS } from '@/constants/municipiosCentroides';
+import { FeatureCollection } from 'geojson';
 
 interface MainMapProps {
   estadoActivo: string;
   municipioActivo: string;
-  capaGeoJSON: any | null; 
+  capaGeoJSON: FeatureCollection | null; 
 }
 
 export const MainMap: React.FC<MainMapProps> = ({ estadoActivo, municipioActivo, capaGeoJSON }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
 
-  // 1. INICIALIZAR EL MAPA (Se ejecuta solo una vez)
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: [-102.5528, 23.6345], 
       zoom: 4,
       pitch: 45, 
@@ -46,7 +47,7 @@ export const MainMap: React.FC<MainMapProps> = ({ estadoActivo, municipioActivo,
   }, [estadoActivo, municipioActivo]);
 
   useEffect(() => {
-    if (!map.current || !capaGeoJSON) return;
+    if (!map.current || !capaGeoJSON || !capaGeoJSON.features) return;
 
     const caja = bbox(capaGeoJSON) as [number, number, number, number];
     
@@ -56,25 +57,28 @@ export const MainMap: React.FC<MainMapProps> = ({ estadoActivo, municipioActivo,
     });
 
     const mapInstance = map.current;
+    const primerFeature = capaGeoJSON.features[0];
+    const categoriaExtraida = primerFeature?.properties?.categoria_origen || 'DEFAULT';
     
     if (mapInstance.getSource('capa-dinamica')) {
       (mapInstance.getSource('capa-dinamica') as maplibregl.GeoJSONSource).setData(capaGeoJSON);
+      
+      mapInstance.setPaintProperty(
+        'predios-3d', 
+        'fill-extrusion-color', 
+        get3DExtrusionPaintStyle(String(categoriaExtraida))['fill-extrusion-color']
+      );
     } else {
       mapInstance.addSource('capa-dinamica', {
         type: 'geojson',
         data: capaGeoJSON
       });
-
+      
       mapInstance.addLayer({
         id: 'predios-3d',
-        type: 'fill-extrusion', 
+        type: 'fill-extrusion',
         source: 'capa-dinamica',
-        paint: {
-          'fill-extrusion-color': '#2563eb',
-          'fill-extrusion-height': ['coalesce', ['get', 'altura_m'], 0],
-          
-          'fill-extrusion-opacity': 0.8
-        }
+        paint: get3DExtrusionPaintStyle(String(categoriaExtraida)) 
       });
     }
   }, [capaGeoJSON]);
