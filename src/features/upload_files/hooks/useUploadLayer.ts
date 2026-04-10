@@ -9,7 +9,6 @@ interface LayerFormData {
   tipoGeometria: string;
 }
 
-// CORRECCIÓN: Asegúrate que diga useUploadLayer (con l minúscula)
 export const useUploadLayer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
