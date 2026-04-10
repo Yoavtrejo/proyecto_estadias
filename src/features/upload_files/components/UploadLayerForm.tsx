@@ -1,109 +1,147 @@
+"use client";
+
 import React, { useState } from 'react';
-import { useUploadLayer } from '../hooks/useUploadLayer';
-import { CATEGORIAS, GEOMETRIAS } from '@/constants';
+import api from '@/api/axiosConfig'; 
 
 export const UploadLayerForm = () => {
-  const { handleUpload, isLoading, error, success } = useUploadLayer();
-
-  const [formData, setFormData] = useState({
-    nombre: '',
-    estado: '',
-    municipio: '',
-    categoria: '',
-    tipoGeometria: '',
-  });
-
-  const [archivo, setArchivo] = useState<File | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setArchivo(e.target.files[0]);
-    }
-  };
+  const [file, setFile] = useState<File | null>(null);
+  const [nombreCapa, setNombreCapa] = useState('');
+  const [estado, setEstado] = useState('Puebla');
+  const [municipio, setMunicipio] = useState('Izúcar de Matamoros');
+  const [categoria, setCategoria] = useState('CATASTRO');
+  const [tipoGeometria, setTipoGeometria] = useState('Polígono');
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!archivo) {
-      alert("Por favor selecciona un archivo GeoJSON");
+    
+    if (!file) {
+      setMessage({ text: 'Por favor, selecciona un archivo GeoJSON.', type: 'error' });
       return;
     }
-    await handleUpload(formData, archivo);
+
+    setIsUploading(true);
+    setMessage(null);
+
+    const formData = new FormData();
+    formData.append('archivo_original', file);
+    formData.append('nombre_capa', nombreCapa);
+    formData.append('estado', estado);
+    formData.append('municipio', municipio);
+    formData.append('categoria', categoria);
+    formData.append('tipo_geometria', tipoGeometria);
+
+    try {
+      const response = await api.post('/api/subir-capa/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setMessage({ text: `¡Éxito! Capa guardada con el ID: ${response.data.id_capa}`, type: 'success' });
+      
+      setFile(null);
+      setNombreCapa('');
+      
+    } catch (error: any) {
+      console.error("Error al subir:", error);
+      setMessage({ 
+        text: error.response?.data?.error || 'Error de conexión al subir la capa.', 
+        type: 'error' 
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Subir Nueva Capa ArcGIS</h2>
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded-lg border border-slate-200 shadow-sm text-sm">
+      
+      {message && (
+        <div className={`p-3 rounded font-medium ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {message.text}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 text-black">
-        {/* Nombre de la Capa */}
+      <div>
+        <label className="block font-medium text-slate-700 mb-1">Nombre de la Capa</label>
+        <input 
+          type="text" 
+          required
+          value={nombreCapa}
+          onChange={(e) => setNombreCapa(e.target.value)}
+          placeholder="Ej. Predios 2024" 
+          className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nombre de la Capa</label>
-          <input
-            type="text"
-            name="nombre"
+          <label className="block font-medium text-slate-700 mb-1">Estado</label>
+          <select value={estado} onChange={(e) => setEstado(e.target.value)} className="w-full p-2 border border-slate-300 rounded bg-slate-50">
+            <option value="Puebla">Puebla</option>
+            <option value="Jalisco">Jalisco</option>
+            <option value="Yucatán">Yucatán</option>
+          </select>
+        </div>
+        <div>
+          <label className="block font-medium text-slate-700 mb-1">Municipio</label>
+          <input 
+            type="text" 
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white"
-            placeholder="Ej: Curvas de Nivel Maestras"
-            onChange={handleChange}
+            value={municipio}
+            onChange={(e) => setMunicipio(e.target.value)}
+            className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
+      </div>
 
-        {/* ... resto del formulario igual que antes ... */}
-        {/* Nota: Las funciones .map((cat) => ...) ahora funcionarán 
-            porque ya importamos CATEGORIAS arriba */}
-            
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Categoría</label>
-            <select
-              name="categoria"
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white"
-              onChange={handleChange}
-            >
-              <option value="">Selecciona...</option>
-              {CATEGORIAS.map((cat) => (
-                <option key={cat.value} value={cat.value}>{cat.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Geometría</label>
-            <select
-              name="tipoGeometria"
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white"
-              onChange={handleChange}
-            >
-              <option value="">Selecciona...</option>
-              {GEOMETRIAS.map((geo) => (
-                <option key={geo.value} value={geo.value}>{geo.label}</option>
-              ))}
-            </select>
-          </div>
+      {/* 3. Clasificación */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block font-medium text-slate-700 mb-1">Categoría</label>
+          <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="w-full p-2 border border-slate-300 rounded bg-slate-50">
+            <option value="CATASTRO">Catastro</option>
+            <option value="EQUIPAMIENTO">Equipamiento</option>
+            <option value="VIAS">Vías</option>
+            <option value="VEGETACION">Vegetación</option>
+            <option value="ALTIMETRIA">Altimetría</option>
+          </select>
         </div>
-
-        {/* ... botón y mensajes ... */}
-        <div className="pt-4">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2 px-4 rounded-md text-white font-bold transition-colors ${
-              isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {isLoading ? 'Procesando archivo...' : 'Subir y Normalizar Capa'}
-          </button>
+        <div>
+          <label className="block font-medium text-slate-700 mb-1">Geometría</label>
+          <select value={tipoGeometria} onChange={(e) => setTipoGeometria(e.target.value)} className="w-full p-2 border border-slate-300 rounded bg-slate-50">
+            <option value="Polígono">Polígono</option>
+            <option value="Línea">Línea</option>
+            <option value="Punto">Punto</option>
+          </select>
         </div>
-      </form>
-    </div>
+      </div>
+
+      {/* 4. Archivo GeoJSON */}
+      <div>
+        <label className="block font-medium text-slate-700 mb-1">Archivo (.geojson)</label>
+        <input 
+          type="file" 
+          accept=".geojson,application/geo+json"
+          onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+          className="w-full p-2 border border-slate-300 rounded file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        />
+      </div>
+
+      {/* Botón de Enviar */}
+      <button 
+        type="submit" 
+        disabled={isUploading}
+        className={`w-full py-2.5 mt-2 text-white font-bold rounded shadow transition-all ${
+          isUploading ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
+        }`}
+      >
+        {isUploading ? 'Procesando en Django...' : 'Subir y Normalizar Capa'}
+      </button>
+
+    </form>
   );
 };
