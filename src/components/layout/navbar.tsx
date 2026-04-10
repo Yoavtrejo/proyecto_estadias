@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "@/constants/ThemeProvider";
 import SICAT_TC from "@/assets/SICAT_TC.png";
 import SICAT_TO from "@/assets/SICAT_TO.png";
@@ -70,6 +71,7 @@ function NavItem({
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export default function Navbar({ role = "Usuario" }: NavbarProps) {
+    const pathname = usePathname();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -77,6 +79,22 @@ export default function Navbar({ role = "Usuario" }: NavbarProps) {
 
     const isDark = theme === "dark";
     const baseColor = isDark ? COLOR.primaryLight : COLOR.primaryDark;
+
+    // No mostrar el Navbar en la página de login o raíz (si es login)
+    const isLoginPage = pathname === "/" || pathname === "/login";
+
+    // Efecto para ajustar el padding del body cuando no hay navbar
+    useEffect(() => {
+        if (isLoginPage) {
+            document.body.classList.add("no-navbar");
+        } else {
+            document.body.classList.remove("no-navbar");
+        }
+    }, [isLoginPage]);
+
+    if (isLoginPage) {
+        return null;
+    }
 
     const navItems = [
         { href: "/Inicio", icon: "icon-[tabler--home]", label: "Inicio", accent: COLOR.primary },
@@ -96,13 +114,13 @@ export default function Navbar({ role = "Usuario" }: NavbarProps) {
             className="fixed bottom-0 left-0 right-0 z-50 h-20 transition-all duration-500"
             style={{
                 // Strong gradient background (Blue to Green) - Adjusts for dark mode
-                background: isDark 
+                background: isDark
                     ? "linear-gradient(90deg, #0f172a 0%, #1e4b6e 50%, #1b3d16 100%)"
                     : "linear-gradient(90deg, #1e5482 0%, #4aaccc 40%, #97bb5e 100%)",
                 borderTop: isDark
                     ? "1px solid rgba(255,255,255,0.08)"
                     : "1px solid rgba(0,0,0,0.1)",
-                boxShadow: isDark 
+                boxShadow: isDark
                     ? "0 -8px 32px rgba(0,0,0,0.6)"
                     : "0 -8px 32px rgba(0,0,0,0.3)",
             }}
@@ -167,7 +185,7 @@ export default function Navbar({ role = "Usuario" }: NavbarProps) {
                     </div>
 
                     {/* Menú Móvil Toggle */}
-                    <button 
+                    <button
                         className="md:hidden p-2 rounded-xl text-white hover:bg-white/10"
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                     >
@@ -178,10 +196,10 @@ export default function Navbar({ role = "Usuario" }: NavbarProps) {
 
             {/* Menú Móvil Overlay */}
             {isMobileMenuOpen && (
-                <div 
+                <div
                     className="md:hidden absolute bottom-20 left-0 right-0 p-4 border-t animate-in fade-in slide-in-from-bottom-4 duration-300"
                     style={{
-                        background: isDark 
+                        background: isDark
                             ? "linear-gradient(135deg, #0f172a 0%, #1a365d 100%)"
                             : "linear-gradient(135deg, #1e5482 0%, #2d5a27 100%)",
                         borderColor: "rgba(255,255,255,0.1)",

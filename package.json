@@ -10,17 +10,21 @@
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
+    "axios": "^1.14.0",
+    "combined-stream": "^1.0.8",
+    "maplibre-gl": "^5.22.0",
     "next": "16.2.2",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "resend": "^6.10.0"
   },
   "devDependencies": {
     "@iconify-json/tabler": "^1.2.33",
     "@iconify/tailwind4": "^1.2.3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/node": "^20.19.39",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",

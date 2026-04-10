@@ -46,7 +46,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#f8f9fa]">
         <ThemeProvider>
           <Navbar role="Administrador" />
-          <div className="pb-24 transition-all duration-300">
+          <div className="navbar-wrapper pb-24 transition-all duration-300">
             {children}
           </div>
         </ThemeProvider>

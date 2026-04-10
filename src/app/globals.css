@@ -30,3 +30,7 @@ body {
   font-family: Montserrat, Poppins, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+body.no-navbar .navbar-wrapper {
+  padding-bottom: 0 !important;
+}
