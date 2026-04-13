@@ -33,7 +33,7 @@ export const UploadLayerForm = () => {
     formData.append('tipo_geometria', tipoGeometria);
 
     try {
-      const response = await api.post('/api/subir-capa/', formData, {
+      const response = await api.post('subir-capa/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -138,7 +138,7 @@ export const UploadLayerForm = () => {
           isUploading ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
         }`}
       >
-        {isUploading ? 'Procesando en Django...' : 'Subir y Normalizar Capa'}
+        {isUploading ? 'Procesando en Django...' : 'Guardar'}
       </button>
 
     </form>

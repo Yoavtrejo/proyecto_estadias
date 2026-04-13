@@ -1,7 +1,11 @@
 //API constants
-export const BASE_URL = 'http://100.98.231.47:8001/';
-export const API_URL = '${BASE_URL}api/';
+// export const BASE_URL = 'http://100.98.231.47:8001/';
+// export const BASE_URL = 'http://192.168.0.19:8001/';
+// export const API_URL = `${BASE_URL}api/`;
 
+
+export const BASE_URL = 'http://192.168.3.29:8001/';
+export const API_URL = `${BASE_URL}api/`;
 
 //App constants
 export const CATEGORIAS = [
@@ -24,3 +28,8 @@ export const GEOMETRIAS = [
   { value: 'LINEAS', label: 'Líneas' },
   { value: 'POLIGONOS', label: 'Polígonos' },
 ];
+
+export const MapStyles = {
+  white: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+};

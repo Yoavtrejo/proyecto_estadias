@@ -25,7 +25,7 @@ export default function LoginForm() {
         
         // 2. SOLO si Django nos da el Token, pasamos al dashboard
         if (loginExitoso) {
-            router.push("/dashboard");
+            router.push("/upload");
         }
     };
 

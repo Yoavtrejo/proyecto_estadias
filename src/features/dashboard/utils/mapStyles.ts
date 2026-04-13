@@ -20,11 +20,23 @@ export const get3DExtrusionPaintStyle = (categoria: string) => {
     };
 }
 
-export const getLinePainStyle = (categoria: string) => {
+export const getLinePaintStyle = (categoria: string) => {
     const color = CATEGORY_COLORS[categoria] || CATEGORY_COLORS['DEFAULT'];
     return {
         'line-color': color,
         'line-width': 2,
         'line-opacity': 0.8,
     };
+};
+
+export const getPointPaintStyle = (categoria: string) => {
+  const color = CATEGORY_COLORS[categoria] || CATEGORY_COLORS['DEFAULT'];
+  
+  return {
+    'circle-color': color,
+    'circle-radius': 6,
+    'circle-stroke-width': 2, 
+    'circle-stroke-color': '#ffffff', 
+    'circle-opacity': 0.9
+  };
 };

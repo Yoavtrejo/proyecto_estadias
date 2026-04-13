@@ -12,6 +12,42 @@ api.interceptors.request.use((config) => {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-});
+},
+(error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            try {
+                const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
+                if (!refreshToken) {
+                    throw new Error("No hay token de actualización disponible");
+                }
+
+                const  response = await axios.post(`${API_URL}refresh/`, { refresh: refreshToken });
+                const newAccessToken = response.data.access;
+                localStorage.setItem("token", newAccessToken);
+
+                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                return api(originalRequest);
+
+            } catch (refreshError) {
+                console.error("Error al refrescar el token:");
+                localStorage.removeItem("token");
+                localStorage.removeItem("refreshToken");
+                window.location.href = "/login";
+                return Promise.reject(refreshError);
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 
 export default api;

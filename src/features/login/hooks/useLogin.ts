@@ -14,6 +14,7 @@ export const useLogin = () => {
             console.log("RESPUESTA CRUDA DEL LOGIN:", data);
             console.log("INTENTANDO EXTRAER EL TOKEN:", data.access);
             localStorage.setItem('token', data.access);
+            localStorage.setItem('refreshToken', data.refresh);
             return true;
         }catch (err: unknown) {
             if(err instanceof Error) {

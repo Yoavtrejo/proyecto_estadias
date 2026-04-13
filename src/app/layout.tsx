@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat, Poppins } from "next/font/google";
+import { Montserrat, Poppins, Newsreader, Manrope } from "next/font/google";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -15,6 +15,19 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   style: ["normal"],
+  display: 'swap',
+});
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: 'swap',
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
   display: 'swap',
 });
 
@@ -44,7 +57,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} ${poppins.variable} antialiased`}
+      className={`${montserrat.variable} ${poppins.variable} ${newsreader.variable} ${manrope.variable}antialiased`}
     >
       <body className="min-h-screen">{children}</body>
     </html>

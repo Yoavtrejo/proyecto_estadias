@@ -16,7 +16,7 @@ export const uploadLayer = async (
     formData.append("tipo_geometria", tipoGeometria);
     formData.append("archivo_original", archivo);
 
-    const response = await api.post("/capa/subir-capa/", formData, {
+    const response = await api.post("subir-capa/", formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
