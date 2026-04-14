@@ -1,7 +1,10 @@
-import Image from "next/image";
+"use client";
+import LoginPage from "./login/page";
 
 export default function Home() {
   return (
-    <h1>Pagina Principal</h1>
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <LoginPage />
+    </main>
   );
 }
