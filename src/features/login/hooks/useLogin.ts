@@ -14,6 +14,7 @@ export const useLogin = () => {
             localStorage.setItem('token', data.access);
             return true;
         }catch (err: unknown) {
+            console.log('❌ [useLogin] Error capturado:', err);
             if(err instanceof Error) {
                 setError(err.message);
             }else {
