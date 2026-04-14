@@ -10,23 +10,24 @@ import { MapStyles } from '@/constants';
 interface MainMapProps {
   estadoActivo: string;
   municipioActivo: string;
-  capaGeoJSON: FeatureCollection | null; 
-  onPolygonClick?: (propiedades: any) => void; 
-  predioSeleccionado?: any; 
+  capasActivas: { id: number, datos: any }[]; 
+  onMapClick?: (elementos: any[]) => void; 
+  elementosSeleccionados?: any[]; 
 }
 
 export const MainMap: React.FC<MainMapProps> = ({ 
   estadoActivo, 
   municipioActivo, 
-  capaGeoJSON,
-  onPolygonClick,
-  predioSeleccionado
+  capasActivas,
+  onMapClick,
+  elementosSeleccionados = []
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const estiloMapaClaro = MapStyles.white; 
 
-  // 1. INICIALIZACIÓN DEL MAPA
+  const fuentesMontadas = useRef<Set<number>>(new Set());
+
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
@@ -40,9 +41,27 @@ export const MainMap: React.FC<MainMapProps> = ({
     });
 
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-  }, [estiloMapaClaro]);
 
-  // 2. EFECTO DE VUELO AL MUNICIPIO SELECCIONADO
+    const mapInstance = map.current;
+
+    mapInstance.on('click', (e) => {
+
+      const featuresCliqueados = mapInstance.queryRenderedFeatures(e.point).filter(f => 
+         f.layer.id.startsWith('capa-renderizada-')
+      );
+
+      if (featuresCliqueados.length > 0 && onMapClick) {
+        
+        const propiedades = featuresCliqueados.map(f => f.properties);
+        onMapClick(propiedades);
+      } else if (featuresCliqueados.length === 0 && onMapClick) {
+        
+        onMapClick([]);
+      }
+    });
+
+  }, [estiloMapaClaro, onMapClick]);
+
   useEffect(() => {
     if (!map.current || !estadoActivo || !municipioActivo) return;
     const coordenadas = CENTROIDES_MUNICIPIOS[estadoActivo]?.[municipioActivo];
@@ -56,121 +75,129 @@ export const MainMap: React.FC<MainMapProps> = ({
     }
   }, [estadoActivo, municipioActivo]);
 
-  // 3. EFECTO PARA CARGAR CAPA, TURF.JS Y EVENTOS DE CLIC
   useEffect(() => {
-    if (!map.current || !capaGeoJSON) return;
-
-    try {
-      // Filtro de Seguridad: Convertir string si es necesario
-      const dataParseada = typeof capaGeoJSON === 'string' ? JSON.parse(capaGeoJSON) : capaGeoJSON;
-
-      if (!dataParseada.features || dataParseada.features.length === 0) return;
-
-      // Filtro de Seguridad: Ignorar geometrías corruptas o nulas
-      const featuresValidos = dataParseada.features.filter((feature: any) => 
-        feature.geometry && feature.geometry.type
-      );
-
-      if (featuresValidos.length === 0) return;
-
-      const geojsonLimpio: FeatureCollection = {
-        type: 'FeatureCollection',
-        features: featuresValidos
-      };
-
-      // Calcular BBOX con los datos limpios
-      const caja = bbox(geojsonLimpio) as [number, number, number, number];
-      map.current.fitBounds(caja, { padding: 50, duration: 1500 });
-
-      const mapInstance = map.current;
-      const primerFeature = geojsonLimpio.features[0];
-      const tipoGeometria = primerFeature.geometry.type; 
-      const categoriaExtraida = primerFeature?.properties?.categoria_origen || 'DEFAULT';
-      
-      if (mapInstance.getLayer('capa-renderizada')) mapInstance.removeLayer('capa-renderizada');
-      if (mapInstance.getSource('fuente-datos')) mapInstance.removeSource('fuente-datos');
-
-      mapInstance.addSource('fuente-datos', {
-        type: 'geojson',
-        data: geojsonLimpio 
-      });
-
-      // Dibujar la capa
-      if (tipoGeometria.includes('LineString')) {
-        mapInstance.addLayer({
-          id: 'capa-renderizada', type: 'line', source: 'fuente-datos',
-          paint: getLinePaintStyle(String(categoriaExtraida))
-        });
-      } else if (tipoGeometria.includes('Polygon')) {
-        mapInstance.addLayer({
-          id: 'capa-renderizada', type: 'fill-extrusion', source: 'fuente-datos',
-          paint: get3DExtrusionPaintStyle(String(categoriaExtraida))
-        });
-      } else if (tipoGeometria.includes('Point')) {
-        mapInstance.addLayer({
-          id: 'capa-renderizada', type: 'circle', source: 'fuente-datos',
-          paint: getPointPaintStyle(String(categoriaExtraida))
-        });
-      }
-
-      // ========================================================
-      // ¡AQUÍ ESTÁN LOS EVENTOS DE CLIC QUE SE HABÍAN BORRADO!
-      // ========================================================
-      
-      // Cursor de manita interactivo
-      mapInstance.on('mouseenter', 'capa-renderizada', () => {
-        mapInstance.getCanvas().style.cursor = 'pointer';
-      });
-      mapInstance.on('mouseleave', 'capa-renderizada', () => {
-        mapInstance.getCanvas().style.cursor = '';
-      });
-
-      // El Clic mágico que le avisa al Dashboard
-      mapInstance.on('click', 'capa-renderizada', (e) => {
-        if (e.features && e.features.length > 0 && onPolygonClick) {
-          onPolygonClick(e.features[0].properties);
-        }
-      });
-
-    } catch (error) {
-      console.error("Error al procesar la capa GeoJSON:", error);
-    }
-
-  }, [capaGeoJSON, onPolygonClick]); 
-
-
-  // 4. EFECTO DE RESALTADO UNIVERSAL (Borde Neón)
-  useEffect(() => {
-    if (!map.current || !map.current.getSource('fuente-datos')) return;
-
     const mapInstance = map.current;
-    const highlightLayerId = 'capa-resaltada';
+    if (!mapInstance) return;
 
-    if (!predioSeleccionado) {
+    const idsActivosCurrent = new Set(capasActivas.map(c => c.id));
+
+    fuentesMontadas.current.forEach(idFuente => {
+      if (!idsActivosCurrent.has(idFuente)) {
+        if (mapInstance.getLayer(`capa-resaltada-${idFuente}`)) mapInstance.removeLayer(`capa-resaltada-${idFuente}`);
+        if (mapInstance.getLayer(`capa-renderizada-${idFuente}`)) mapInstance.removeLayer(`capa-renderizada-${idFuente}`);
+        if (mapInstance.getSource(`fuente-datos-${idFuente}`)) mapInstance.removeSource(`fuente-datos-${idFuente}`);
+        
+        fuentesMontadas.current.delete(idFuente);
+      }
+    });
+
+    capasActivas.forEach(capaActivaObj => {
+      
+      if (!fuentesMontadas.current.has(capaActivaObj.id)) {
+        try {
+          const dataParseada = typeof capaActivaObj.datos === 'string' ? JSON.parse(capaActivaObj.datos) : capaActivaObj.datos;
+          if (!dataParseada.features || dataParseada.features.length === 0) return;
+
+          const featuresValidos = dataParseada.features.filter((feature: any) => 
+            feature.geometry && feature.geometry.type
+          );
+          if (featuresValidos.length === 0) return;
+
+          const geojsonLimpio: FeatureCollection = {
+            type: 'FeatureCollection',
+            features: featuresValidos
+          };
+
+          const idCapaName = capaActivaObj.id;
+
+          mapInstance.addSource(`fuente-datos-${idCapaName}`, {
+            type: 'geojson',
+            data: geojsonLimpio 
+          });
+
+          const primerFeature = geojsonLimpio.features[0];
+          const tipoGeometria = primerFeature.geometry.type; 
+          
+          const categoriaExtraida = primerFeature?.properties?.categoria_origen || 'DEFAULT';
+
+          if (tipoGeometria.includes('LineString')) {
+            mapInstance.addLayer({
+              id: `capa-renderizada-${idCapaName}`, type: 'line', source: `fuente-datos-${idCapaName}`,
+              paint: getLinePaintStyle(String(categoriaExtraida))
+            });
+          } else if (tipoGeometria.includes('Polygon')) {
+            mapInstance.addLayer({
+              id: `capa-renderizada-${idCapaName}`, type: 'fill-extrusion', source: `fuente-datos-${idCapaName}`,
+              paint: get3DExtrusionPaintStyle(String(categoriaExtraida))
+            });
+          } else if (tipoGeometria.includes('Point')) {
+            mapInstance.addLayer({
+              id: `capa-renderizada-${idCapaName}`, type: 'circle', source: `fuente-datos-${idCapaName}`,
+              paint: getPointPaintStyle(String(categoriaExtraida))
+            });
+          }
+
+          mapInstance.on('mouseenter', `capa-renderizada-${idCapaName}`, () => {
+            mapInstance.getCanvas().style.cursor = 'pointer';
+          });
+          mapInstance.on('mouseleave', `capa-renderizada-${idCapaName}`, () => {
+            mapInstance.getCanvas().style.cursor = '';
+          });
+
+          const caja = bbox(geojsonLimpio) as [number, number, number, number];
+          mapInstance.fitBounds(caja, { padding: 50, duration: 1500 });
+
+          fuentesMontadas.current.add(idCapaName);
+
+        } catch (error) {
+          console.error(`Error al procesar la capa GeoJSON con id ${capaActivaObj.id}:`, error);
+        }
+      }
+    });
+
+  }, [capasActivas]); 
+
+  useEffect(() => {
+    const mapInstance = map.current;
+    if (!mapInstance) return;
+
+    fuentesMontadas.current.forEach(idFuente => {
+      const highlightLayerId = `capa-resaltada-${idFuente}`;
       if (mapInstance.getLayer(highlightLayerId)) {
         mapInstance.removeLayer(highlightLayerId);
       }
-      return;
-    }
+    });
 
-    const idElemento = predioSeleccionado.OBJECTID || predioSeleccionado.arcgis_id || predioSeleccionado.id;
-    if (!idElemento) return;
+    if (!elementosSeleccionados || elementosSeleccionados.length === 0) return;
 
-    const tipoGeometria = mapInstance.querySourceFeatures('fuente-datos')[0]?.geometry?.type;
+    const identificadoresActivos = elementosSeleccionados.map(e => e.OBJECTID || e.arcgis_id || e.id).filter(Boolean);
 
-    if (mapInstance.getLayer(highlightLayerId)) {
-      mapInstance.setFilter(highlightLayerId, ['==', ['get', 'OBJECTID'], idElemento]);
-    } else {
-      if (tipoGeometria?.includes('Polygon') || tipoGeometria?.includes('LineString')) {
+    if (identificadoresActivos.length === 0) return;
+
+    const filterConditions = ['any', 
+      ...identificadoresActivos.map(id => ['==', ['get', 'OBJECTID'], id]),
+      ...identificadoresActivos.map(id => ['==', ['get', 'arcgis_id'], id]),
+      ...identificadoresActivos.map(id => ['==', ['get', 'id'], id])
+    ];
+
+    fuentesMontadas.current.forEach(idFuente => {
+      const sourceName = `fuente-datos-${idFuente}`;
+      const highlightLayerId = `capa-resaltada-${idFuente}`;
+
+      if (!mapInstance.getSource(sourceName)) return;
+
+      const geometriaRepresentativa = mapInstance.querySourceFeatures(sourceName)[0]?.geometry?.type;
+
+      if (geometriaRepresentativa?.includes('Polygon') || geometriaRepresentativa?.includes('LineString')) {
         mapInstance.addLayer({
-          id: highlightLayerId, type: 'line', source: 'fuente-datos',
-          filter: ['==', ['get', 'OBJECTID'], idElemento],
+          id: highlightLayerId, type: 'line', source: sourceName,
+          filter: filterConditions as maplibregl.FilterSpecification,
           paint: { 'line-color': '#10b981', 'line-width': 4, 'line-opacity': 1 }
         });
-      } else if (tipoGeometria?.includes('Point')) {
+      } else if (geometriaRepresentativa?.includes('Point')) {
         mapInstance.addLayer({
-          id: highlightLayerId, type: 'circle', source: 'fuente-datos',
-          filter: ['==', ['get', 'OBJECTID'], idElemento],
+          id: highlightLayerId, type: 'circle', source: sourceName,
+          filter: filterConditions as maplibregl.FilterSpecification,
           paint: {
             'circle-color': 'transparent',
             'circle-stroke-color': '#10b981',
@@ -179,13 +206,11 @@ export const MainMap: React.FC<MainMapProps> = ({
           }
         });
       }
-    }
-  }, [predioSeleccionado]); 
+    });
 
+  }, [elementosSeleccionados, capasActivas]); 
 
   return (
-    <div className="w-full h-full min-h-[600px] rounded-lg overflow-hidden shadow-lg border border-gray-200 shrink-0">
-      <div ref={mapContainer} className="w-full h-full" />
-    </div>
+    <div ref={mapContainer} className="absolute inset-0 w-full h-full bg-slate-100" />
   );
 };
