@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 // IMPORTAMOS TU HOOK: (Ajusta la ruta según la estructura de tus carpetas)
 import { useLogin } from "@/features/login"
 
@@ -105,6 +106,12 @@ export default function LoginForm() {
                             {showPassword ? "Ocultar" : "Mostrar"}
                         </button>
                     </div>
+                </div>
+
+                <div className="flex items-center justify-end mt-2">
+                    <Link href="/recuperar" className="text-sm font-medium text-[#004b71] hover:text-emerald-500 transition-colors">
+                        ¿Olvidaste tu contraseña?
+                    </Link>
                 </div>
 
                 {/* Botón de Enviar (Se bloquea mientras carga) */}
