@@ -23,3 +23,8 @@ export const uploadLayer = async (
     });
     return response.data;
 };
+
+export const deleteLayer = async (id: number) => {
+    const response = await api.delete(`subir-capa/${id}/`);
+    return response.data;
+};

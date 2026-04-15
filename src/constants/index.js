@@ -1,12 +1,11 @@
 //API constants
 // export const BASE_URL = 'http://100.98.231.47:8001/';
-// export const BASE_URL = 'http://192.168.0.19:8001/';
-// export const API_URL = `${BASE_URL}api/`;
-
-
-export const BASE_URL = 'http://192.168.3.29:8001/';
+export const BASE_URL = 'http://192.168.0.19:8001/';
 export const API_URL = `${BASE_URL}api/`;
 
+
+// export const BASE_URL = 'http://192.168.3.29:8001/';
+// export const API_URL = `${BASE_URL}api/`;
 //App constants
 export const CATEGORIAS = [
   { value: 'ALTIMETRIA', label: 'Altimetría' },

@@ -11,9 +11,17 @@ import { useRouter } from 'next/navigation';
 
 export default function Upfileview() {
     const router = useRouter();
-    const {cargarListaCapas, listaCapas} = useMapLayers();
+    const {cargarListaCapas, listaCapas, eliminarCapa} = useMapLayers();
     const [paginaActual, setPaginaActual] = useState(1);
     const capasPorPagina = 5;
+
+    // Estado para el modal de confirmación
+    const [modalAbierto, setModalAbierto] = useState(false);
+    const [capaAEliminar, setCapaAEliminar] = useState<{id: number, nombre: string} | null>(null);
+    const [eliminando, setEliminando] = useState(false);
+
+    // Estado para el toast de feedback
+    const [toast, setToast] = useState<{text: string, type: 'success' | 'error'} | null>(null);
 
     const indiceUltimaCapa = paginaActual * capasPorPagina;
     const indicePrimeraCapa = indiceUltimaCapa - capasPorPagina;
@@ -28,11 +36,98 @@ export default function Upfileview() {
     const irPaginaAnterior = () => {
         if (paginaActual > 1) setPaginaActual(paginaActual - 1);
     };
+
+    // Abrir modal de confirmación
+    const abrirModalEliminar = (id: number, nombre: string) => {
+        setCapaAEliminar({id, nombre});
+        setModalAbierto(true);
+    };
+
+    // Confirmar eliminación
+    const confirmarEliminacion = async () => {
+        if (!capaAEliminar) return;
+        setEliminando(true);
+        try {
+            await eliminarCapa(capaAEliminar.id);
+            setToast({text: `Capa "${capaAEliminar.nombre}" eliminada exitosamente.`, type: 'success'});
+            // Si la página actual queda vacía, retroceder
+            const nuevasCantidad = listaCapas.length - 1;
+            const nuevoTotalPaginas = Math.ceil(nuevasCantidad / capasPorPagina);
+            if (paginaActual > nuevoTotalPaginas && nuevoTotalPaginas > 0) {
+                setPaginaActual(nuevoTotalPaginas);
+            }
+        } catch {
+            setToast({text: 'Error al eliminar la capa. Intenta de nuevo.', type: 'error'});
+        } finally {
+            setEliminando(false);
+            setModalAbierto(false);
+            setCapaAEliminar(null);
+        }
+    };
+
+    // Auto-ocultar toast después de 3 segundos
+    useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => setToast(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
+
     useEffect(() => {
             cargarListaCapas();
         },[cargarListaCapas]);
     return (
     <div className="bg-surface text-on-surface font-body min-h-screen topo-pattern">
+        {/* Modal de confirmación de eliminación */}
+        {modalAbierto && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div className="bg-surface-container-low rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-outline-variant/20 animate-in fade-in zoom-in">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-red-600 text-2xl">delete_forever</span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-headline font-bold text-on-surface">Eliminar Capa</h3>
+                            <p className="text-sm text-on-surface-variant">Esta acción no se puede deshacer</p>
+                        </div>
+                    </div>
+                    <p className="text-on-surface-variant mb-6">
+                        ¿Estás seguro de que deseas eliminar la capa{' '}
+                        <strong className="text-on-surface">&quot;{capaAEliminar?.nombre}&quot;</strong>?
+                        Se eliminarán todos los datos geográficos asociados.
+                    </p>
+                    <div className="flex gap-3 justify-end">
+                        <button
+                            onClick={() => { setModalAbierto(false); setCapaAEliminar(null); }}
+                            disabled={eliminando}
+                            className="px-5 py-2.5 rounded-lg text-sm font-bold text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={confirmarEliminacion}
+                            disabled={eliminando}
+                            className={`px-5 py-2.5 rounded-lg text-sm font-bold text-white transition-all ${
+                                eliminando 
+                                ? 'bg-red-300 cursor-not-allowed' 
+                                : 'bg-red-600 hover:bg-red-700 shadow-sm hover:shadow-md'
+                            }`}
+                        >
+                            {eliminando ? (
+                                <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                    </svg>
+                                    Eliminando...
+                                </span>
+                            ) : 'Eliminar'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
         <main className="pt-32 pb-20 px-6 max-w-5xl mx-auto">
             <header className="mb-12 space-y-4">
                 <h1 className="font-headline text-5xl md:text-6xl text-on-surface font-bold leading-tight">
@@ -76,6 +171,7 @@ export default function Upfileview() {
                                             <th className="py-3 px-4 text-sm font-bold text-on-surface-variant uppercase tracking-wider">Nombre de la Capa</th>
                                             <th className="py-3 px-4 text-sm font-bold text-on-surface-variant uppercase tracking-wider">Categoría</th>
                                             <th className="py-3 px-4 text-sm font-bold text-on-surface-variant uppercase tracking-wider">Municipio</th>
+                                            <th className="py-3 px-4 text-sm font-bold text-on-surface-variant uppercase tracking-wider text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -92,6 +188,16 @@ export default function Upfileview() {
                                                 </td>
                                                 <td className="py-3 px-4 text-sm text-on-surface-variant uppercase">
                                                     {capa.municipio}
+                                                </td>
+                                                <td className="py-3 px-4 text-center">
+                                                    <button
+                                                        id={`delete-layer-${capa.id}`}
+                                                        onClick={() => abrirModalEliminar(capa.id, capa.nombre_capa)}
+                                                        title="Eliminar capa"
+                                                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-on-surface-variant hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                                                    >
+                                                        <span className="material-symbols-outlined text-xl">delete</span>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -112,7 +218,7 @@ export default function Upfileview() {
                                                     : 'text-on-surface hover:bg-surface-variant'
                                                 }`}
                                             >
-                                                <span className="material-symbols-outlined text-sm">chevron_left</span>
+                                                
                                                 <span className="sr-only">Anterior</span>
                                             </button>
                                             
@@ -129,7 +235,7 @@ export default function Upfileview() {
                                                     : 'text-on-surface hover:bg-surface-variant'
                                                 }`}
                                             >
-                                                <span className="material-symbols-outlined text-sm">chevron_right</span>
+                                                
                                                 <span className="sr-only">Siguiente</span>
                                             </button>
                                         </div>
@@ -181,8 +287,23 @@ export default function Upfileview() {
                 </aside>
             </div>
         </main>
-        <div className="fixed bottom-8 right-8 flex items-center gap-3 bg-on-surface text-surface py-3 px-6 rounded-full shadow-2xl opacity-0 translate-y-4 pointer-events-none transition-all">
-            <span className="text-sm font-medium">Archivo procesado correctamente</span>
+
+        {/* Toast de feedback */}
+        <div className={`fixed bottom-8 right-8 flex items-center gap-3 py-3 px-6 rounded-full shadow-2xl transition-all duration-300 ${
+            toast 
+            ? 'opacity-100 translate-y-0' 
+            : 'opacity-0 translate-y-4 pointer-events-none'
+        } ${
+            toast?.type === 'success' 
+            ? 'bg-emerald-600 text-white' 
+            : toast?.type === 'error' 
+            ? 'bg-red-600 text-white' 
+            : 'bg-on-surface text-surface'
+        }`}>
+            <span className="material-symbols-outlined text-lg">
+                {toast?.type === 'success' ? 'check_circle' : 'error'}
+            </span>
+            <span className="text-sm font-medium">{toast?.text}</span>
         </div>
     </div>
     );

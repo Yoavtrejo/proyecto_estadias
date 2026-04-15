@@ -63,6 +63,20 @@ export const useMapLayers = () => {
         setCapasActivas([]);
     }, []);
 
+    // Eliminar capa de la BD y del estado local
+    const eliminarCapa = useCallback(async (idCapa: number) => {
+        try {
+            await api.delete(`subir-capa/${idCapa}/`);
+            // Remover de la lista
+            setListaCapas(prev => prev.filter(c => c.id !== idCapa));
+            // Si estaba activa en el mapa, también removerla
+            setCapasActivas(prev => prev.filter(c => c.id !== idCapa));
+        } catch (err) {
+            console.error("Error al eliminar la capa", err);
+            throw err;
+        }
+    }, []);
+
     const cargarListaCapas = useCallback(async (estado?: string, municipio?: string) => {
         try {
             let url = 'subir-capa/';
@@ -89,6 +103,7 @@ export const useMapLayers = () => {
         errorCapa, 
         cargarCapa, 
         limpiarCapas, 
-        cargarListaCapas 
+        cargarListaCapas,
+        eliminarCapa 
     };
 };

@@ -1,3 +1,4 @@
-import { uploadLayer } from "./services/layerService";
-import { useUploadLayer } from "@/features/upload_files";
+import { uploadLayer, deleteLayer } from "./services/layerService";
+import { useUploadLayer } from "./hooks/useUploadLayer";
 
+export { uploadLayer, deleteLayer, useUploadLayer };
