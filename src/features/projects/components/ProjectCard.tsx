@@ -87,12 +87,12 @@ export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardPr
                 {/* Actions */}
                 <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
                     <button
-                        onClick={() => router.push(`/proyectos/visualizacion?id=${project.id}`)}
+                        onClick={() => router.push(`/dashboard?proyecto_id=${project.id}&estado=${encodeURIComponent(project.estado)}&municipio=${encodeURIComponent(project.municipio)}`)}
                         id={`btn-ver-${project.id}`}
                         className="inline-flex items-center gap-2 text-sm font-semibold text-[#173F4A] hover:text-emerald-600 transition-colors duration-200"
                     >
                         <FiEye className="w-4 h-4" />
-                        Visualizar
+                        Ver en mapa
                     </button>
 
                     <div className="flex items-center gap-1">

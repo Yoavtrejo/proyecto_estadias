@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", icon: "dashboard", label: "Inicio" },
-  { href: "/proyectos", icon: "folder", label: "Proyectos" },
-  { href: "/upload", icon: "map", label: "Mapas" },
-  { href: "/usuarios", icon: "group", label: "Usuarios" },
+  { href: "/dashboard", icon: "map", label: "Inicio" },
+  { href: "/proyectos", icon: "business_center", label: "Proyectos" },
+  { href: "/upload", icon: "description", label: "Mapas" },
+  { href: "/usuarios", icon: "person", label: "Usuarios" },
 ];
 
 const HIDDEN_ROUTES = [

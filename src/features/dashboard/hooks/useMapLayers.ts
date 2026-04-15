@@ -77,12 +77,13 @@ export const useMapLayers = () => {
         }
     }, []);
 
-    const cargarListaCapas = useCallback(async (estado?: string, municipio?: string) => {
+    const cargarListaCapas = useCallback(async (estado?: string, municipio?: string, proyectoId?: string) => {
         try {
             let url = 'subir-capa/';
             const params = new URLSearchParams();
             if (estado) params.append('estado', estado);
             if (municipio) params.append('municipio', municipio);
+            if (proyectoId) params.append('proyecto_id', proyectoId);
             
             if (params.toString()) {
                 url += `?${params.toString()}`;
