@@ -1,2 +1,2 @@
-export { default as LoginForm } from "./components/loginForm";
-export { useLogin } from "./hooks/useLogin";
+export { useLogin } from './hooks/useLogin';
+export {LoginForm} from "./components/loginForm";

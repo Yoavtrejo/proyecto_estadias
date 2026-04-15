@@ -1,25 +1,53 @@
 import type { Metadata } from "next";
-import { Poppins, Montserrat } from "next/font/google";
+import { Montserrat, Poppins, Newsreader, Manrope } from "next/font/google";
 import "./globals.css";
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-
-});
+import BottomNavBar from "@/components/BottomNavBar";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: "normal",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
+  display: 'swap',
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal"],
+  display: 'swap',
+});
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: 'swap',
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "SICAT - Sistema de Información Catastral",
-  description: "Sistema de Información Catastral",
+  title: {
+    default: 'SICAT — Sistema de Información Catastral',
+    template: '%s | SICAT',
+  },
+  description:
+    'Plataforma geoespacial para la gestión territorial, análisis de predios y sostenibilidad ambiental.',
+  keywords: [
+    'catastro',
+    'territorio',
+    'geoespacial',
+    'análisis de predios',
+    'sostenibilidad',
+    'SICAT',
+  ],
+  authors: [{ name: 'SICAT' }],
 };
 
 export default function RootLayout({
@@ -30,9 +58,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${montserrat.variable} h-full antialiased`}
+      className={`${montserrat.variable} ${poppins.variable} ${newsreader.variable} ${manrope.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-screen pb-20 relative">
+        {children}
+        <BottomNavBar />
+      </body>
     </html>
   );
 }

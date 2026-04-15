@@ -8,41 +8,36 @@ import { useLogin } from "@/features/login"
 
 export default function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
-
+    
     // NUEVO: Estados para guardar lo que el usuario escribe
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-
+    
     const router = useRouter();
-
+    
     // NUEVO: Traemos las funciones de tu cerebro de autenticación
     const { executeLogin, loading, error } = useLogin();
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const success = await executeLogin(username, password);
-        if (success) {
-            router.push("/inicio"); // Redirige a la página de usuario después del login exitoso
+        
+        // 1. Ejecutamos tu hook y le pasamos los datos reales
+        const loginExitoso = await executeLogin(username, password);
+        
+        // 2. SOLO si Django nos da el Token, pasamos al dashboard
+        if (loginExitoso) {
+            router.push("/upload");
         }
     };
 
     return (
         <div className="w-full">
-            {/* Encabezado Premium */}
-            <div className="mb-10 animate-in fade-in slide-in-from-top-6 duration-1000 ease-out">
-                <div className="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black tracking-widest uppercase mb-4 shadow-sm border border-emerald-100">
-                    Acceso Seguro
-                </div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-tight mb-3">
-                    <span className="text-[#004A61]">Bienvenido de</span>
-                    <br />
-                    <span className="bg-gradient-to-r from-[#004A61] via-[#1D8348] to-[#8FC044] text-transparent bg-clip-text">
-                        Nuevo.
-                    </span>
+            {/* Encabezado */}
+            <div className="mb-7">
+                <h1 className="text-4xl font-serif text-[#3d2a1d] mb-2 leading-tight">
+                    Bienvenido de nuevo
                 </h1>
-                <p className="text-gray-400 text-sm font-medium leading-relaxed max-w-xs">
-                    Ingresa tus credenciales para acceder
-                </p>
+                <p className="text-gray-500 text-sm">Ingrese a su cuenta para continuar.</p>
             </div>
 
             {/* NUEVO: Mostramos el error si Django rechaza las credenciales */}
@@ -125,11 +120,11 @@ export default function LoginForm() {
                     type="submit"
                     disabled={loading}
                     className={`w-full py-2.5 px-4 bg-gradient-to-r from-[#004b71] to-[#4caf50] text-white font-semibold rounded-lg shadow-sm transition-opacity text-sm
-                        ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90 active:opacity-95'}`}
+                        ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90 active:opacity-95'}`}       
                 >
                     {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
                 </button>
-
+                
             </form>
         </div>
     );
