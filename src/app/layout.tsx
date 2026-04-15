@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Poppins, Newsreader, Manrope } from "next/font/google";
 import "./globals.css";
+import BottomNavBar from "@/components/BottomNavBar";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -59,7 +60,10 @@ export default function RootLayout({
       lang="en"
       className={`${montserrat.variable} ${poppins.variable} ${newsreader.variable} ${manrope.variable} h-full antialiased`}
     >
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen pb-20 relative">
+        {children}
+        <BottomNavBar />
+      </body>
     </html>
   );
 }
