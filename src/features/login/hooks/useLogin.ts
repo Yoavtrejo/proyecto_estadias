@@ -11,10 +11,12 @@ export const useLogin = () => {
 
         try {
             const data = await loginService(username, password);
+            console.log("RESPUESTA CRUDA DEL LOGIN:", data);
+            console.log("INTENTANDO EXTRAER EL TOKEN:", data.access);
             localStorage.setItem('token', data.access);
+            localStorage.setItem('refreshToken', data.refresh);
             return true;
         }catch (err: unknown) {
-            console.log('❌ [useLogin] Error capturado:', err);
             if(err instanceof Error) {
                 setError(err.message);
             }else {
