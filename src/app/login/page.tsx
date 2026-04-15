@@ -1,5 +1,5 @@
 "use client";
-import LoginForm from "@/features/login/components/LoginForm";
+import LoginForm from "@/features/login/components/loginForm";
 import fondo from "@/assets/Sicat_fondo.png";
 import logo from "@/assets/SICAT_TR.png";
 
