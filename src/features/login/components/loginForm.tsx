@@ -15,8 +15,8 @@ export default function LoginForm() {
         e.preventDefault();
         const success = await executeLogin(username, password);
         if (success) {
-            router.push("/usuarios"); // Redirige a la página de usuario después del login exitoso
-        } 
+            router.push("/inicio"); // Redirige a la página de usuario después del login exitoso
+        }
     };
 
     return (

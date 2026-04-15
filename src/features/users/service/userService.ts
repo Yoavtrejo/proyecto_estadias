@@ -38,14 +38,20 @@ export const getUsers = async (): Promise<User[]> => {
     }
 };
 
+export const getCurrentUser = async (): Promise<User> => {
+    try {
+        const response = await api.get<User>("users/me/");
+        return response.data;
+    } catch (error) {
+        throw new Error(handleAxiosError(error, "Error al obtener el perfil del usuario."));
+    }
+};
+
 export const createUser = async (userData: any): Promise<any> => {
     try {
-        // Asegúrate de que termine en / si tu Django lo requiere (APPEND_SLASH = True)
         const response = await api.post("usuarios/", userData); 
         return response.data;
     } catch (error: any) {
-        // Esto ayudará a ver en consola qué campo está rechazando Django
-        console.error("Error detallado de Django:", error.response?.data);
         throw new Error(handleAxiosError(error, "Error al crear el usuario."));
     }
 };
@@ -54,7 +60,7 @@ export const updateUser = async (id: string | number, userData: UpdateUserDTO): 
     try {
         const response = await api.put<User>(`usuarios/${id}/`, userData);
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
         throw new Error(handleAxiosError(error, "Error al actualizar el usuario."));
     }
 };

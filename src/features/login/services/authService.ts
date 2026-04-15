@@ -3,14 +3,6 @@ import axios from "axios";
 export interface LoginResponse {
     access: string;
     refresh: string;
-    user: {
-        id: number;
-        username: string;
-        email: string;
-        first_name: string;
-        last_name: string;  
-        password: string;
-    }
 }
 
 export const login = async (username: string, password: string): Promise<LoginResponse> => {

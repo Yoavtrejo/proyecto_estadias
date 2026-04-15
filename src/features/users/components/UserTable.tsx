@@ -4,7 +4,7 @@ import { User } from '../types/userTypes';
 interface UserTableProps {
     users: User[];
     onEdit: (user: User) => void;
-    onDelete: (id: string) => void;
+    onDelete: (id: number) => void;
 }
 
 const UserTable: React.FC<UserTableProps> = ({ users, onEdit, onDelete }) => {
@@ -57,19 +57,25 @@ const UserTable: React.FC<UserTableProps> = ({ users, onEdit, onDelete }) => {
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button 
                                     onClick={() => onEdit(user)}
-                                    className="text-[#004A61] hover:text-[#002d3d] mr-4 font-semibold"
+                                    className="p-2 text-[#004A61] hover:bg-blue-50 rounded-lg transition-all"
+                                    title="Editar usuario"
                                 >
-                                    <span className='icon-edit'/>Editar
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
                                 </button>
                                 <button 
                                     onClick={() => onDelete(user.id)}
-                                    className="text-red-600 hover:text-red-900 font-semibold"
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all ml-2"
+                                    title="Eliminar usuario"
                                 >
-                                    Eliminar
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
                                 </button>
                             </td>
-                        </tr>
-                    ))}
+                            </tr>
+                        ))}
                 </tbody>
             </table>
         </div>
