@@ -5,3 +5,4 @@ export default function Home() {
     <h1>Pagina Principal</h1>
   );
 }
+
