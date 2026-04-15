@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@plugin "@iconify/tailwind4";
+@plugin "../../node_modules/@iconify/tailwind4";
 
 :root {
   --background: #f8f9fa;
